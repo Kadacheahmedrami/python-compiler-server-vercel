@@ -119,7 +119,7 @@ class handler(BaseHTTPRequestHandler):
                 'fol_bc_ask': fol_bc_ask,
             }
 
-            # Add AIMA3 functions if available
+        
             if AIMA_AVAILABLE:
                 try:
                     safe_globals.update({
