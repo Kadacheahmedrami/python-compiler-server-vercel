@@ -4,9 +4,17 @@
       {
         "src": "api/index.js",
         "use": "@vercel/node"
+      },
+      {
+        "src": "api/logic.py",
+        "use": "@vercel/python"
       }
     ],
     "routes": [
+      {
+        "src": "/api/logic",
+        "dest": "api/logic.py"
+      },
       {
         "src": "/(.*)",
         "methods": ["POST"],
@@ -14,4 +22,3 @@
       }
     ]
   }
-  

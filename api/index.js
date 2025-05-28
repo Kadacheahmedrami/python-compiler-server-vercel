@@ -1,44 +1,48 @@
-import { spawn } from "child_process";
-
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "Only POST allowed" });
-    return;
-  }
-
-  try {
-    const input = JSON.stringify(req.body);
-
-    const pythonProcess = spawn("python3", ["api/logic.py"]);
-
-    let output = "";
-    let errorOutput = "";
-
-    pythonProcess.stdout.on("data", (data) => {
-      output += data.toString();
-    });
-
-    pythonProcess.stderr.on("data", (data) => {
-      errorOutput += data.toString();
-    });
-
-    pythonProcess.on("close", (code) => {
-      if (code !== 0) {
-        res.status(500).json({ error: "Python script failed", details: errorOutput });
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+    if (req.method === 'OPTIONS') {
+      res.status(200).end();
+      return;
+    }
+  
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Only POST allowed" });
+      return;
+    }
+  
+    try {
+      // Get the base URL dynamically
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers.host;
+      const baseUrl = `${protocol}://${host}`;
+      
+      // Call the Python function directly
+      const pythonResponse = await fetch(`${baseUrl}/api/logic`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(req.body)
+      });
+  
+      if (!pythonResponse.ok) {
+        const errorData = await pythonResponse.json();
+        res.status(pythonResponse.status).json(errorData);
         return;
       }
-      try {
-        const jsonOutput = JSON.parse(output);
-        res.status(200).json(jsonOutput);
-      } catch (parseError) {
-        res.status(500).json({ error: "Failed to parse Python output", details: output });
-      }
-    });
-
-    // Send input to python stdin
-    pythonProcess.stdin.write(input);
-    pythonProcess.stdin.end();
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+  
+      const result = await pythonResponse.json();
+      res.status(200).json(result);
+  
+    } catch (error) {
+      console.error('Error calling Python function:', error);
+      res.status(500).json({ 
+        error: "Failed to process request", 
+        details: error.message 
+      });
+    }
   }
-}
