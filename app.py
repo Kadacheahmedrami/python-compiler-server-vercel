@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
 import sys
 import io
 import traceback
@@ -9,8 +8,21 @@ import pkg_resources
 
 app = Flask(__name__)
 
-# Enable CORS for all routes and origins
-CORS(app, origins="*")
+# Manual CORS implementation
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
+@app.route('/', methods=['OPTIONS'])
+@app.route('/packages', methods=['OPTIONS'])
+@app.route('/install', methods=['OPTIONS'])
+@app.route('/code', methods=['OPTIONS'])
+def handle_options():
+    """Handle preflight OPTIONS requests"""
+    return '', 204
 
 @app.route('/')
 def welcome():
