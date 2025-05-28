@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import sys
 import io
 import traceback
@@ -7,6 +8,9 @@ import subprocess
 import pkg_resources
 
 app = Flask(__name__)
+
+# Enable CORS for all routes and origins
+CORS(app, origins="*")
 
 @app.route('/')
 def welcome():
