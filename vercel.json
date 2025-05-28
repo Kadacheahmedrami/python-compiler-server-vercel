@@ -1,13 +1,16 @@
 {
     "version": 2,
     "functions": {
-      "api/index.py": { "runtime": "python3.9" }
+      "api/index.py": {
+        "runtime": "vercel-python@0.3.7"
+      }
     },
     "routes": [
       {
         "src": "/(.*)",
-        "methods": ["POST","GET"],
+        "methods": ["POST"],
         "dest": "api/index.py"
       }
     ]
   }
+  
