@@ -9,8 +9,11 @@ import pkg_resources
 
 app = Flask(__name__)
 
-# Enable CORS for ALL origins (allows any domain)
-CORS(app)
+# Enable CORS for all routes
+CORS(app, origins=['http://localhost:3000', 'https://your-frontend-domain.com'])
+
+# Alternative: Enable CORS for all origins (less secure but works for development)
+# CORS(app)
 
 @app.route('/')
 def welcome():
@@ -59,7 +62,7 @@ def execute_code():
     # Handle preflight OPTIONS request
     if request.method == 'OPTIONS':
         response = jsonify({'status': 'ok'})
-        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
         response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
         return response
@@ -132,7 +135,7 @@ def execute_code():
 # Manual CORS headers for all responses (backup method)
 @app.after_request
 def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
