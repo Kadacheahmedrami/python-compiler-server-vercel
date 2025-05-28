@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 async function testAIMA3() {
-  const url = 'http://localhost:5000/code';
+  const url = 'https://python-compiler-server-vercel.vercel.app/code';
   const codeToRun = `
 # Test AIMA3 medical diagnosis system
 try:

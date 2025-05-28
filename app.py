@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import sys
 import io
 import traceback
@@ -7,6 +8,9 @@ import subprocess
 import pkg_resources
 
 app = Flask(__name__)
+
+# Enable CORS for ALL origins (allows any domain)
+CORS(app)
 
 @app.route('/')
 def welcome():
@@ -50,8 +54,16 @@ def install_package():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/code', methods=['POST'])
+@app.route('/code', methods=['POST', 'OPTIONS'])
 def execute_code():
+    # Handle preflight OPTIONS request
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        return response
+    
     try:
         # Get the code from the request
         data = request.get_json()
@@ -116,6 +128,14 @@ def execute_code():
             'success': False,
             'error': f'Server error: {str(e)}'
         }), 500
+
+# Manual CORS headers for all responses (backup method)
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 # For Vercel deployment
 if __name__ == '__main__':
