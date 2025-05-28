@@ -1,24 +1,19 @@
+import sys
+import json
 from aima3.utils import expr
 from aima3.logic import *
-import traceback
-import json
 
-def handler(request):
+def main():
     try:
-        # Parse body
-        body = request.get("body")
-        if isinstance(body, str):
-            body = json.loads(body)
+        # Read JSON string from stdin
+        data = sys.stdin.read()
+        body = json.loads(data)
 
-        if not body or 'expr' not in body:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": 'Missing "expr" in request body'})
-            }
+        expr_str = body.get("expr")
+        if not expr_str:
+            print(json.dumps({"error": 'Missing "expr"'}))
+            return
 
-        expr_str = body['expr']
-
-        # Define safe environment
         safe_globals = {
             '__builtins__': {},
             'expr': expr,
@@ -30,7 +25,6 @@ def handler(request):
             'list': list,
         }
 
-        # Eval logic
         if '\n' in expr_str.strip() or ';' in expr_str:
             local_vars = {}
             lines = [line.strip() for line in expr_str.strip().split('\n') if line.strip()]
@@ -43,14 +37,12 @@ def handler(request):
         else:
             result = eval(expr_str, safe_globals, {})
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps({"result": result})
-        }
+        print(json.dumps({"result": result}))
 
     except Exception as e:
+        import traceback
         tb = traceback.format_exc()
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": str(e), "traceback": tb})
-        }
+        print(json.dumps({"error": str(e), "traceback": tb}))
+
+if __name__ == "__main__":
+    main()

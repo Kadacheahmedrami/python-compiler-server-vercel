@@ -1,15 +1,16 @@
 {
     "version": 2,
-    "functions": {
-      "api/index.py": {
-        "runtime": "vercel-python@0.3.7"
+    "builds": [
+      {
+        "src": "api/index.js",
+        "use": "@vercel/node"
       }
-    },
+    ],
     "routes": [
       {
         "src": "/(.*)",
         "methods": ["POST"],
-        "dest": "api/index.py"
+        "dest": "api/index.js"
       }
     ]
   }
