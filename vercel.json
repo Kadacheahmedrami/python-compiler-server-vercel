@@ -1,24 +1,17 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "api/index.js",
-        "use": "@vercel/node"
-      },
-      {
-        "src": "api/logic.py",
-        "use": "@vercel/python"
+    "functions": {
+      "api/index.js": {
+        "runtime": "nodejs18.x"
       }
-    ],
+    },
     "routes": [
       {
-        "src": "/api/logic",
-        "dest": "api/logic.py"
+        "src": "/",
+        "dest": "/api/index.js"
       },
       {
-        "src": "/(.*)",
-        "methods": ["POST"],
-        "dest": "api/index.js"
+        "src": "/api",
+        "dest": "/api/index.js"
       }
     ]
   }
