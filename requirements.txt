@@ -1,0 +1,3 @@
+Flask==2.3.3
+aima3==1.0.11
+Werkzeug==2.3.7
