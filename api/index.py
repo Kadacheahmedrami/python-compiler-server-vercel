@@ -5,10 +5,11 @@ import json
 
 def handler(request):
     try:
+        # Parse body
         body = request.get("body")
         if isinstance(body, str):
             body = json.loads(body)
-        
+
         if not body or 'expr' not in body:
             return {
                 "statusCode": 400,
@@ -17,6 +18,7 @@ def handler(request):
 
         expr_str = body['expr']
 
+        # Define safe environment
         safe_globals = {
             '__builtins__': {},
             'expr': expr,
@@ -28,6 +30,7 @@ def handler(request):
             'list': list,
         }
 
+        # Eval logic
         if '\n' in expr_str.strip() or ';' in expr_str:
             local_vars = {}
             lines = [line.strip() for line in expr_str.strip().split('\n') if line.strip()]
@@ -40,16 +43,10 @@ def handler(request):
         else:
             result = eval(expr_str, safe_globals, {})
 
-        try:
-            return {
-                "statusCode": 200,
-                "body": json.dumps({"result": result})
-            }
-        except (TypeError, OverflowError):
-            return {
-                "statusCode": 200,
-                "body": json.dumps({"result": repr(result)})
-            }
+        return {
+            "statusCode": 200,
+            "body": json.dumps({"result": result})
+        }
 
     except Exception as e:
         tb = traceback.format_exc()
