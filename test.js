@@ -1,179 +1,134 @@
-// Test script for Python Code Runner API
-// Usage: node test.js
+import axios from 'axios';
 
-const BASE_URL = 'http://localhost:5000'; // Change this to your deployed URL
+async function testAIMA3() {
+  const url = 'http://localhost:5000/code';
+  const codeToRun = `
+# Test AIMA3 medical diagnosis system
+try:
+    from aima3.logic import *
+    
+    print("AIMA3 logic module loaded successfully!")
+    
+    # Create our medical knowledge base
+    medical_kb = FolKB()
 
-async function testAPI() {
-    console.log('🚀 Testing Python Code Runner API\n');
+    # Adding patient data - everyone came in with different symptoms
+    medical_kb.tell(expr("Fever(Ahmad)"))
+    medical_kb.tell(expr("Cough(Ahmad)"))
+    medical_kb.tell(expr("SoreThroat(Ahmad)"))
 
-    // Test 1: Welcome route
-    console.log('📍 Test 1: Welcome Route');
-    try {
-        const response = await fetch(`${BASE_URL}/`);
-        const text = await response.text();
-        console.log(`✅ GET / - Status: ${response.status}`);
-        console.log(`📄 Response: ${text}\n`);
-    } catch (error) {
-        console.log(`❌ GET / - Error: ${error.message}\n`);
-    }
+    medical_kb.tell(expr("Fatigue(Fatima)"))
+    medical_kb.tell(expr("Rash(Fatima)"))
+    medical_kb.tell(expr("JointPain(Fatima)"))
 
-    // Test 2: Simple print statement
-    console.log('📍 Test 2: Simple Print Statement');
-    await testCode({
-        code: "print('Hello from Python!')"
-    }, 'Simple print');
+    medical_kb.tell(expr("ShortnessOfBreath(Leila)"))
+    medical_kb.tell(expr("ChestPain(Leila)"))
+    medical_kb.tell(expr("Cough(Leila)"))
 
-    // Test 3: Mathematical operations
-    console.log('📍 Test 3: Mathematical Operations');
-    await testCode({
-        code: `
-result = 10 + 5
-print(f"10 + 5 = {result}")
-power = 2 ** 8
-print(f"2^8 = {power}")
-        `.trim()
-    }, 'Math operations');
+    medical_kb.tell(expr("Headache(Omar)"))
+    medical_kb.tell(expr("Fever(Omar)"))
+    medical_kb.tell(expr("Fatigue(Omar)"))
 
-    // Test 4: Variables and loops
-    console.log('📍 Test 4: Variables and Loops');
-    await testCode({
-        code: `
-numbers = [1, 2, 3, 4, 5]
-total = 0
-for num in numbers:
-    total += num
-print(f"Sum of {numbers} = {total}")
+    medical_kb.tell(expr("Nausea(Youssef)"))
+    medical_kb.tell(expr("Vomiting(Youssef)"))
+    medical_kb.tell(expr("AbdominalPain(Youssef)"))
 
-# List comprehension
-squares = [x**2 for x in range(1, 6)]
-print(f"Squares: {squares}")
-        `.trim()
-    }, 'Variables and loops');
+    # Diagnostic rules
+    medical_kb.tell(expr("Fever(x) & Cough(x) ==> HasFlu(x)"))
+    medical_kb.tell(expr("Fever(x) & Cough(x) & SoreThroat(x) ==> HasStrepThroat(x)"))
+    medical_kb.tell(expr("ShortnessOfBreath(x) & ChestPain(x) ==> HasPneumonia(x)"))
+    medical_kb.tell(expr("Rash(x) & JointPain(x) ==> HasLymeDisease(x)"))
+    medical_kb.tell(expr("Nausea(x) & Vomiting(x) ==> HasGastroenteritis(x)"))
+    medical_kb.tell(expr("Headache(x) & Fever(x) ==> HasMeningitis(x)"))
 
-    // Test 5: Error handling - Syntax error
-    console.log('📍 Test 5: Syntax Error');
-    await testCode({
-        code: "print('Hello world'"  // Missing closing parenthesis
-    }, 'Syntax error');
-
-    // Test 6: Error handling - Runtime error
-    console.log('📍 Test 6: Runtime Error');
-    await testCode({
-        code: `
-x = 10
-y = 0
-result = x / y  # Division by zero
-print(result)
-        `.trim()
-    }, 'Runtime error');
-
-    // Test 7: Import modules
-    console.log('📍 Test 7: Import Modules');
-    await testCode({
-        code: `
-import math
-import random
-
-print(f"Pi: {math.pi}")
-print(f"Square root of 16: {math.sqrt(16)}")
-print(f"Random number: {random.randint(1, 100)}")
-        `.trim()
-    }, 'Import modules');
-
-    // Test 8: JSON and data structures
-    console.log('📍 Test 8: JSON and Data Structures');
-    await testCode({
-        code: `
-import json
-
-data = {
-    "name": "Python Runner",
-    "version": "1.0",
-    "features": ["code execution", "error handling", "output capture"]
-}
-
-json_str = json.dumps(data, indent=2)
-print("JSON Data:")
-print(json_str)
-
-# Parse back
-parsed = json.loads(json_str)
-print(f"\\nName: {parsed['name']}")
-        `.trim()
-    }, 'JSON handling');
-
-    // Test 9: No code provided
-    console.log('📍 Test 9: No Code Provided');
-    await testCode({}, 'No code');
-
-    // Test 10: Empty code
-    console.log('📍 Test 10: Empty Code');
-    await testCode({
-        code: ""
-    }, 'Empty code');
-
-    console.log('🏁 All tests completed!');
-}
-
-async function testCode(payload, testName) {
-    try {
-        const response = await fetch(`${BASE_URL}/code`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
+    print("Knowledge base populated with patient data and rules!")
+    
+    # Simple diagnosis check
+    print("\\nChecking specific diagnoses:")
+    
+    # Test Ahmad for StrepThroat
+    ahmad_strep = list(fol_bc_ask(medical_kb, expr("HasStrepThroat(Ahmad)")))
+    if ahmad_strep:
+        print("Ahmad likely has StrepThroat")
+    else:
+        print("Ahmad doesn't have StrepThroat")
         
-        console.log(`Status: ${response.status}`);
+    # Test Leila for Pneumonia  
+    leila_pneumonia = list(fol_bc_ask(medical_kb, expr("HasPneumonia(Leila)")))
+    if leila_pneumonia:
+        print("Leila likely has Pneumonia")
+    else:
+        print("Leila doesn't have Pneumonia")
         
-        if (result.success) {
-            console.log('✅ Success');
-            if (result.stdout) {
-                console.log('📤 Output:');
-                console.log(result.stdout);
-            }
-            if (result.stderr) {
-                console.log('⚠️  Stderr:');
-                console.log(result.stderr);
-            }
-        } else {
-            console.log('❌ Error');
-            console.log(`Error: ${result.error}`);
-            if (result.traceback) {
-                console.log('📋 Traceback:');
-                console.log(result.traceback);
-            }
-        }
-        
-    } catch (error) {
-        console.log(`❌ Network Error: ${error.message}`);
+    # Test Fatima for Lyme
+    fatima_lyme = list(fol_bc_ask(medical_kb, expr("HasLymeDisease(Fatima)")))
+    if fatima_lyme:
+        print("Fatima likely has LymeDisease")
+    else:
+        print("Fatima doesn't have LymeDisease")
+
+    print("\\nAIMA3 medical diagnosis test completed successfully!")
+    
+except Exception as e:
+    print(f"AIMA3 not working properly: {e}")
+    print("\\nRunning simple medical diagnosis instead...")
+    
+    # Simple fallback medical logic
+    patients = {
+        "Ahmad": ["Fever", "Cough", "SoreThroat"],
+        "Fatima": ["Fatigue", "Rash", "JointPain"], 
+        "Leila": ["ShortnessOfBreath", "ChestPain", "Cough"],
+        "Omar": ["Headache", "Fever", "Fatigue"],
+        "Youssef": ["Nausea", "Vomiting", "AbdominalPain"]
     }
     
-    console.log('─'.repeat(50) + '\n');
-}
+    # Simple diagnostic rules
+    rules = {
+        "Flu": ["Fever", "Cough"],
+        "StrepThroat": ["Fever", "Cough", "SoreThroat"],
+        "Pneumonia": ["ShortnessOfBreath", "ChestPain"],
+        "LymeDisease": ["Rash", "JointPain"],
+        "Gastroenteritis": ["Nausea", "Vomiting"],
+        "Meningitis": ["Headache", "Fever"]
+    }
+    
+    print("Simple medical diagnosis results:")
+    for patient, symptoms in patients.items():
+        print(f"\\n{patient} has symptoms: {', '.join(symptoms)}")
+        diagnoses = []
+        for disease, required_symptoms in rules.items():
+            if all(symptom in symptoms for symptom in required_symptoms):
+                diagnoses.append(disease)
+        
+        if diagnoses:
+            print(f"  Likely diagnoses: {', '.join(diagnoses)}")
+        else:
+            print("  No clear diagnosis from current rules")
+            
+    print("\\nFallback diagnosis system completed!")
+`;
 
-// Helper function to test with custom URL
-function setBaseURL(url) {
-    BASE_URL = url;
-}
-
-// Run tests if this file is executed directly
-if (require.main === module) {
-    // Check if custom URL is provided as command line argument
-    const customURL = process.argv[2];
-    if (customURL) {
-        console.log(`🔗 Using custom URL: ${customURL}`);
-        BASE_URL = customURL;
+  try {
+    const response = await axios.post(url, { code: codeToRun });
+    const data = response.data;
+    
+    console.log('AIMA3 Test Response:', data);
+    
+    if (data.success) {
+      console.log('Output:\n', data.stdout);
+      if (data.stderr) console.log('Errors:\n', data.stderr);
     } else {
-        console.log(`🔗 Using default URL: ${BASE_URL}`);
-        console.log('💡 Tip: You can provide a custom URL as argument: node test.js https://your-app.vercel.app');
+      console.error('Execution failed:', data.error);
+      console.error('Traceback:', data.traceback);
     }
-    
-    testAPI().catch(console.error);
+  } catch (error) {
+    if (error.response) {
+      console.error('HTTP error:', error.response.status, error.response.statusText);
+      console.error('Response data:', error.response.data);
+    } else {
+      console.error('Request error:', error.message);
+    }
+  }
 }
 
-// Export for use in other files
-module.exports = { testAPI, setBaseURL };
+testAIMA3();

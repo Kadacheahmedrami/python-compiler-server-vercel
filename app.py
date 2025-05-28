@@ -3,12 +3,52 @@ import sys
 import io
 import traceback
 import contextlib
+import subprocess
+import pkg_resources
 
 app = Flask(__name__)
 
 @app.route('/')
 def welcome():
     return "Welcome to the Python App"
+
+@app.route('/packages', methods=['GET'])
+def list_packages():
+    """List installed packages"""
+    try:
+        installed_packages = [d.project_name for d in pkg_resources.working_set]
+        return jsonify({
+            'packages': sorted(installed_packages),
+            'count': len(installed_packages)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/install', methods=['POST'])
+def install_package():
+    """Install a package using pip"""
+    try:
+        data = request.get_json()
+        if not data or 'package' not in data:
+            return jsonify({'error': 'No package specified'}), 400
+        
+        package = data['package']
+        
+        # Install the package
+        result = subprocess.run(
+            [sys.executable, '-m', 'pip', 'install', package],
+            capture_output=True,
+            text=True
+        )
+        
+        return jsonify({
+            'success': result.returncode == 0,
+            'stdout': result.stdout,
+            'stderr': result.stderr,
+            'return_code': result.returncode
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/code', methods=['POST'])
 def execute_code():
@@ -42,6 +82,22 @@ def execute_code():
                     'stderr': stderr_output if stderr_output else None
                 })
                 
+            except ImportError as e:
+                # Special handling for import errors
+                missing_module = str(e).split("'")[1] if "'" in str(e) else "unknown"
+                error_traceback = traceback.format_exc()
+                stderr_output = stderr_buffer.getvalue()
+                
+                return jsonify({
+                    'success': False,
+                    'error': f'Import Error: {str(e)}',
+                    'error_type': 'ImportError',
+                    'missing_module': missing_module,
+                    'suggestion': f'Try installing the missing module: pip install {missing_module}',
+                    'traceback': error_traceback,
+                    'stderr': stderr_output if stderr_output else None
+                })
+                
             except Exception as e:
                 # Get the error traceback
                 error_traceback = traceback.format_exc()
@@ -50,6 +106,7 @@ def execute_code():
                 return jsonify({
                     'success': False,
                     'error': str(e),
+                    'error_type': type(e).__name__,
                     'traceback': error_traceback,
                     'stderr': stderr_output if stderr_output else None
                 })
